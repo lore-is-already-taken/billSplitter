@@ -35,7 +35,6 @@ CREATE TABLE IF NOT EXISTS Room (
 
 -- Create UserGroupRol table
 CREATE TABLE IF NOT EXISTS UserGroupRol (
-    userGroupRolID SERIAL PRIMARY KEY,
     userID INT REFERENCES "User"(userID),
     rolID INT REFERENCES Role(rolID),
     groupID INT REFERENCES "Group"(groupID),
@@ -44,7 +43,6 @@ CREATE TABLE IF NOT EXISTS UserGroupRol (
 
 -- Create RoomUserRol table
 CREATE TABLE IF NOT EXISTS RoomUserRol (
-    roomUserRolID SERIAL PRIMARY KEY,
     rollID INT REFERENCES Role(rolID),
     userID INT REFERENCES "User"(userID),
     roomID INT REFERENCES Room(roomID),
