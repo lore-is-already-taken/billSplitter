@@ -45,8 +45,10 @@ func main() {
         fmt.Fprintln(w,"Hello World")
     })
     
-    mux.HandleFunc("/connect",func(w http.ResponseWriter,r *http.Request){
+    mux.HandleFunc("POST /connect",func(w http.ResponseWriter,r *http.Request){
+        fmt.Fprintln(w,"Connecting")
         connect()
+        fmt.Fprintln(w,"Connected")
     })
     
     if err := http.ListenAndServe(":9090",mux); err != nil{
