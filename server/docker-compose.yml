@@ -17,10 +17,10 @@ services:
     #restart: always
     ports:
       - 8080:8080
-  back:
-    build:
-      context: .
-      dockerfile: Dockerfile.back
-    container_name: back_bill
-    ports:
-      - 9090:9090
+  #back:
+    #build:
+      #context: .
+      #dockerfile: Dockerfile.back
+    #container_name: back_bill
+    #ports:
+      #- 9090:9090

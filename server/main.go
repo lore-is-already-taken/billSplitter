@@ -5,54 +5,69 @@ import (
     "net/http"
     "database/sql"
   _ "github.com/lib/pq"
+    "github.com/rs/cors"   
+    "enconding/json"
 )
-
-const(
-    host = "mypostgres"
-    port = 5432
-    user = "myuser"
-    password = "mypassword"
-    dbname = "mydatabase"
-)
-
-func connect(){
-    // CONNECTS TO DB
-    psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
-    "password=%s dbname=%s sslmode=disable",
-    host, port, user, password, dbname)
-    db, err := sql.Open("postgres", psqlInfo)
-    if err != nil {
-    panic(err)
-    }
-    defer db.Close()
-}
 
 func main() {
     mux := http.NewServeMux()
+ 
+    /*
+    ==========================================================================
+    =   DATABASE CONNECTION
+    ==========================================================================
+    */
+    db, err := sql.Open("postgres", "postgres://myuser:mypassword@my_postgres/my_database?sslmode=disable")
+	if err != nil {
+		fmt.Println("Error connecting to the database:", err)
+		return
+	}
+	defer db.Close()
+
+	// Check connection to db
+	err = db.Ping()
+	if err != nil {
+		fmt.Println("Error pinging the database:", err)
+		return
+	}
+    fmt.Println("Connected to database")
     
-    mux.HandleFunc("/{variable}",func(w http.ResponseWriter,r *http.Request){
-        variable := r.PathValue("variable")
-        fmt.Printf("varaible %v",variable)
-    })
-    
-    mux.HandleFunc("/login/{user}/{pass}",func(w http.ResponseWriter,r *http.Request){
-        user := r.PathValue("user")
-        pass := r.PathValue("pass")
-        fmt.Printf("inicia sesion con %v,%v",user,pass)
-    })
-    
+    /*
+    ==========================================================================
+    =   HANDLERS
+    ==========================================================================
+    */
+
+    mux.HandleFunc("POST /newUser/", func(w http.ResponseWriter, r *http.Request) {
+        type User struct {
+            username string `json:"username"`
+            password string `json:"password"`
+            email string `json:"email"`
+        }
+        var user User
+		err := json.NewDecoder(r.Body).Decode(&user)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+        res, error := db.Exec("INSERT INTO User (name,password,email) VALUES ($1,$2)", user.username,user.password,user.email)
+        if error != nil {
+			fmt.Printf("Error: %v", error)
+		}
+		fmt.Printf("Respuesta: %v\n", res)
+
+		// Respond with a success message
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprintf(w, `{"message": "True"}`)
+	})
+
     mux.HandleFunc("/",func(w http.ResponseWriter,r *http.Request){
         fmt.Fprintln(w,"Hello World")
     })
-    
-    mux.HandleFunc("POST /connect",func(w http.ResponseWriter,r *http.Request){
-        fmt.Fprintln(w,"Connecting")
-        connect()
-        fmt.Fprintln(w,"Connected")
-    })
-    
-    if err := http.ListenAndServe(":9090",mux); err != nil{
-        fmt.Println(err.Error())
-    }
 
+    handler := cors.Default().Handler(mux)
+	if err := http.ListenAndServe(":9090", handler); err != nil {
+		fmt.Println(err.Error())
+	}  
 }
