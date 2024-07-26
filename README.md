@@ -19,3 +19,7 @@ the run the docker-compose file
 
 
 Doing that you should be all set up
+```
+hello
+
+```
